@@ -11,7 +11,7 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
 
 執行 WretchDL Lite：
 
-    $ ./WretchDL_List.rb
+    $ ./WretchDL_Lite.rb
 
 接著輸入欲下載的相簿的 Wretch 帳號，例如(假設帳號是riddleapple)：
 
@@ -39,7 +39,7 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
 
 輸入``p``可以切換頁面。例如想要顯示第二頁的相簿列表時：
 
-    (riddleapple: p1), input> h
+    (riddleapple: p1), input> p
     Go to Page: 2
 
 輸入``a``可以切換 Wretch 帳號：
