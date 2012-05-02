@@ -2,7 +2,7 @@
 
 下載 Wretch 相簿的小程式。
 
-# 使用方式
+## 使用方式
 
 Ubuntu 使用者需要先安裝 Ruby 與 curl：
 
