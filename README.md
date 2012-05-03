@@ -20,11 +20,13 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
 輸入帳號後，會輸出第一頁的相簿列表，例如：
 
     Album book list (page:1):
-    1. 小時候的相片
-    2. 出遊照
-    3. 搞怪照
-    4. 雜七雜八
-    5. 風景照
+     1. 小時候的相片
+     2. 出遊照
+     3. 搞怪照
+     4. 雜七雜八
+     5. 風景照
+     
+    (riddleapple: p1), input>
 
 輸入相簿編號，就可以開始下載相簿。例如想要下載上述列表的``小時候的相片``，就輸入``1``：
 
@@ -36,6 +38,12 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
 輸入``h``會顯示 Help 內容：
 
     (riddleapple: p1), input> h
+    Help:
+      Keyin 'a' : Changes the Wretch account name.
+      Keyin 'h' : Show help.
+      Keyin 'p' : Go to Page.
+      Keyin 'q' : Quit App.
+      Keyin album book number(1~20) : Download album book.
 
 輸入``p``可以切換頁面。例如想要顯示第二頁的相簿列表時：
 
