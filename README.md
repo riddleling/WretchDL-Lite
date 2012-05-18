@@ -2,6 +2,8 @@
 
 下載 Wretch 相簿的小程式。
 
+
+
 ## 使用方式
 
 Ubuntu 使用者需要先安裝 Ruby 與 curl：
@@ -55,7 +57,10 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
     (riddleapple: p1), input> a
     Please input Wretch account name: 這裡輸入Wretch帳號
 
-輸入``q``會結束程式。
+輸入``q``會結束程式：
+
+    (riddleapple: p1), input> q
+
 
 
 ## 軟體授權 (License)
