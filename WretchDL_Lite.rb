@@ -29,37 +29,80 @@
 require 'open-uri'
 
 #
-# BookInfo Class: Wretch Album a book info.
+# WretchPhotoURL Class
 #
-# Initialize Method:
-# initialize(book_number, book_name) - Setup @book_number and @book_name
-#
-class BookInfo
-  attr_accessor :book_number, :book_name
+class WretchPhotoURL
+  attr_accessor :photo_url
   
-  def initialize(book_number, book_name)
-    @book_number, @book_name = book_number, book_name
+  def initialize(photo_url)
+    @photo_url = photo_url
+  end
+  
+  def to_file_url
+    page_html = open(@photo_url).read
+    
+    file_url = ""
+    page_html.each_line do |line|
+      if line =~ /<img id='DisplayImage' src='([^']+)' /
+        file_url = Regexp.last_match[1]
+      elsif line =~ /<img class='displayimg' src='([^']+)' /
+        file_url = Regexp.last_match[1]
+      end
+    end
+    file_url
+  end
+  
+end
+
+#
+# WretchAlbum Class
+#
+class WretchAlbum
+  attr_accessor :id, :number, :name, :pictures
+  
+  def initialize(id, number, name)
+    @id, @number, @name = id, number, name
+    @pictures = 0
+  end
+  
+  def photos_urls
+    album_url = "http://www.wretch.cc/album/album.php?id=#{@id}&book=#{@number}"
+    i = 1
+    is_next_page = true
+    urls = []
+    while is_next_page do
+      page_html = open(album_url).read
+    
+      urls.concat(get_photo_url_list(page_html))
+      i += 1
+      is_next_page = false
+      # Next Page?
+      page_html.each_line do |line|
+        if line =~ /(album\.php\?id=#{@id}&book=#{@number}&page=#{i})/
+          album_url = "http://www.wretch.cc/album/album.php?id=#{@id}&book=#{@number}&page=#{i}"
+          is_next_page = true
+          break
+        end
+      end
+    end
+    urls
+  end
+  
+  private
+  def get_photo_url_list(page_html)
+    urls = []
+    page_html.each_line do |line|
+      if line =~ /<a href="\.\/(show.php\?i=#{@id}&b=#{@number}&f=\d+&p=\d+&sp=\d+)".+><img src=/
+        photo_url = WretchPhotoURL.new("http://www.wretch.cc/album/#{Regexp.last_match[1]}")
+        urls.push(photo_url)
+      end
+    end
+    urls
   end
 end
 
-
-
 #
-# WretchAlbumsInfo Class: Get Wretch Albums Info.
-#
-# Initialize Method:
-# initialize(wretch_id) - Setup @wretch_id
-#
-# Public Method:
-# book_list(page_num) - Input: Page number
-#                     - Return: album books list (Array):
-#                       #=> [BookInfo object, BookInfo object, ...]
-#
-# photo_urls(book_number) - Input: Book number
-#                         - Return: Photo URLs (Array): #=> ["URL", "URL", ...]
-#
-# get_file_url(photo_url) - Input: Photo URL
-#                         - Return: File URL(.jpg file URL)
+# WretchAlbumsInfo Class
 #
 class WretchAlbumsInfo
   attr_accessor :wretch_id
@@ -67,122 +110,32 @@ class WretchAlbumsInfo
   def initialize(wretch_id)
     @wretch_id = wretch_id
   end
-  
-  # Public: Get book URL and book number.
-  # 
-  # page_num - Page number.
-  #
-  # Examples:
-  #   obj.books_list(1)
-  #   # => [BookInfo object, BookInfo object, ...]
-  #
-  def books_list(page_num)
-    # setup album URL
+
+  def list(page_number)
     wretch_url = "http://www.wretch.cc/album/#{@wretch_id}"
-    if page_num >= 2 
-      wretch_url << "&page=#{page_num}"
+    if page_number >= 2 
+      wretch_url << "&page=#{page_number}"
     end
 
-    # get html
     page_html = open(wretch_url).read
-        
-    # get books list
-    album_books = Array.new
+    albums = []
 
-    page_html.each_line {|line|
+    page_html.each_line do |line|
       if line =~ /<a href="\.\/album\.php\?id=#{@wretch_id}&book=(\d+)">(.+)<\/a>/
-        album_books << BookInfo.new(Regexp.last_match[1], Regexp.last_match[2])
+        albums << WretchAlbum.new(@wretch_id, Regexp.last_match[1], Regexp.last_match[2])
       end
-    }
-    album_books
-  end
-  
-  # Public: Get Photo URLs.
-  #
-  # book_number - Book number.
-  #
-  # Examples:
-  #   obj.book_photos_urls("123")
-  #   # => [URL_String, URL_String, ...]
-  # 
-  def book_photos_urls(book_number)
-    # setup book URL
-    book_url = "http://www.wretch.cc/album/album.php?id=#{@wretch_id}&book=#{book_number}"
-    i = 1
-    n = true
-    photos_urls = []
-    while n do
-      # get html
-      page_html = open(book_url).read
-    
-      photos_urls.concat(get_photo_url_list(page_html, book_number))
-      i += 1
-      n = false
-      # Next Page?
-      page_html.each_line {|line|
-        if line =~ /(album\.php\?id=#{@wretch_id}&book=#{book_number}&page=#{i})/
-          book_url = "http://www.wretch.cc/album/album.php?id=#{@wretch_id}&book=#{book_number}&page=#{i}"
-           #puts "Next Page: #{book_url}"
-          n = true
-          break
-        end
-      }
     end
-    photos_urls
+    albums
   end
   
-  # Public: Get file URL.
-  #
-  # photo_url - Photo URL.
-  #
-  # Examples:
-  #   obj.get_file_url("http://...")
-  #   # => "http://.../xxxxxxxxxx.jpg?xxxxxxxx..."
-  #
-  def get_file_url(photo_url)
-    page_data = open(photo_url)
-    page_html = page_data.read
-    
-    file_url = ""
-    page_html.each_line {|line|
-      if line =~ /<img id='DisplayImage' src='([^']+)' /
-        file_url = Regexp.last_match[1]
-      elsif line =~ /<img class='displayimg' src='([^']+)' /
-        file_url = Regexp.last_match[1]
-      end
-    }
-    file_url
-  end
-  
-  private
-  
-  # Private: Get photo URL list.
-  #
-  # page_html - Page html.
-  # book_number - Book number.
-  #
-  # Examples:
-  #   get_photo_url_list(page_html, "123")
-  #   # => ["http://...", "http:/...", ...]
-  #
-  def get_photo_url_list(page_html, book_number)
-    photo_url_list = Array.new
-    page_html.each_line {|line|
-      if line =~ /<a href="\.\/(show.php\?i=#{@wretch_id}&b=#{book_number}&f=\d+&p=\d+&sp=\d+)".+><img src=/
-        photo_url = "http://www.wretch.cc/album/" + Regexp.last_match[1]
-        photo_url_list.push(photo_url)
-      end
-    }
-    photo_url_list
-  end
 end
 
 
 
 #
-# WretchDLAppController Class: WretchDL App main code.
+# WretchDLAppMain Class: WretchDL App main code.
 #
-class WretchDLAppController
+class WretchDLAppMain
   def initialize
     # app version number
     @version = "0.9.1"
@@ -201,11 +154,11 @@ class WretchDLAppController
   def main_code
     # input Wretch account name.
     begin
-      print "\nPlease input Wretch account name: "
+      print "\nPlease input Wretch account: "
       wretch_id = gets.chomp
       @page_number = 1
-      album = WretchAlbumsInfo.new(wretch_id)
-      books = album.books_list(@page_number)
+      albums_info = WretchAlbumsInfo.new(wretch_id)
+      albums = albums_info.list(@page_number)
     rescue OpenURI::HTTPError => e
       puts "=> Error: #{e.message}"
       retry
@@ -214,7 +167,7 @@ class WretchDLAppController
       retry
     end
     
-    show_books_list(books)
+    show_albums_list(albums)
     num = 0
     
     while 1 do
@@ -234,35 +187,35 @@ class WretchDLAppController
       when input_cmd == 'p' || input_cmd == 'P'
         print "Go to Page: "
         @page_number = gets.chomp.to_i
-        books = album.books_list(@page_number)
-        show_books_list(books)
+        albums = albums_info.list(@page_number)
+        show_albums_list(albums)
         num = 0
         next
       end
       
-      # download album book photo.
-      book_index = input_cmd.to_i
-      if (1..20) === book_index
-        num = book_index
-        book_index -= 1
+      # download album photo.
+      album_index = input_cmd.to_i
+      if (1..20) === album_index
+        num = album_index
+        album_index -= 1
         
         start_dir_name = Dir.pwd
-        make_and_change_dir(album.wretch_id, books[book_index].book_name)
+        make_and_change_dir(albums_info.wretch_id, albums[album_index].name)
         
         # start download jpg file.
         @count_files = 0
-        album.book_photos_urls(books[book_index].book_number).each {|photo_url|
-          file_url = album.get_file_url(photo_url)
+        albums[album_index].photos_urls.each do |photo_url|
+          file_url = photo_url.to_file_url
           if file_url.empty? == false
             download_file(file_url)
           end
           sleep 1
-        }
+        end
         
         puts "\n=> Done! Download the #{@count_files} files!"
-        print "Do you want to open \"#{books[book_index].book_name}\" directory? (y/n) "
-        open_dir = gets.chomp
-        if open_dir == 'y' or open_dir == 'Y'
+        print "Do you want to open \"#{albums[album_index].name}\" directory? (y/n) "
+        is_open = gets.chomp
+        if is_open == 'y' or is_open == 'Y'
           open_dl_dir
         end
         # goto the start directory.
@@ -271,39 +224,34 @@ class WretchDLAppController
         puts "=> ?"
       end
       
-      show_books_list(books)
+      show_albums_list(albums)
     end # While End
   end # Main Code End
 
 
   # make and change dir.
-  def make_and_change_dir(id_name, book_name)
+  def make_and_change_dir(id_name, album_name)
     # make directory: WretchAlbum
     dl_dir_name = "WretchAlbum"
     unless File.exist?(dl_dir_name) and File.directory?(dl_dir_name)
       Dir.mkdir(dl_dir_name, 0755)
     end
-    # cd WretchAlbum directory.
     Dir.chdir(dl_dir_name)
-        
+
     # make directory: using account name
-     #id_dir_name = album.wretch_id
     unless File.exist?(id_name) and File.directory?(id_name)
       Dir.mkdir(id_name, 0755)
     end
-    # cd id name directory.
     Dir.chdir(id_name)
-        
-    # make directory: using book name
-     #bookname_dir_name = books[book_index].book_name
-    unless File.exist?(book_name) and File.directory?(book_name)
-      Dir.mkdir(book_name, 0755)
+
+    # make directory: using album name
+    unless File.exist?(album_name) and File.directory?(album_name)
+      Dir.mkdir(album_name, 0755)
     end
-    # cd Book name directory.
-    Dir.chdir(book_name)
+    Dir.chdir(album_name)
      # puts "Save path: " + Dir.pwd + "/"
   end
-  
+
   # Download a file.
   def download_file(file_url)
     file_url =~ %r!http://.+/(.+\.jpg)?.+!
@@ -330,11 +278,11 @@ class WretchDLAppController
     end
   end
   
-  # Show book name list.
-  def show_books_list(books)
-    puts "\nAlbum book list (page:#{@page_number}):"
-    books.each_index {|i|
-      puts " #{i+1}. #{books[i].book_name}"
+  # Show albums list.
+  def show_albums_list(albums)
+    puts "\nAlbums list (page:#{@page_number}):"
+    albums.each_index {|i|
+      puts " #{i+1}. #{albums[i].name}"
     }
     puts
   end
@@ -342,13 +290,13 @@ class WretchDLAppController
   # Show command list.
   def show_help
     puts "Help:"
-    puts "   Keyin 'a' : Changes the Wretch account name."
+    puts "   Keyin 'a' : Changes the Wretch account."
     puts "   Keyin 'h' : Show help."
     puts "   Keyin 'p' : Go to Page."
     puts "   Keyin 'q' : Quit App."
-    puts "   Keyin album book number(1~20) : Download album book."
+    puts "   Keyin albums index number(1~20) : Download album photo."
     puts
   end
 end
 
-WretchDLAppController.new.start
+WretchDLAppMain.new.start
