@@ -284,9 +284,9 @@ class WretchDLAppMain
   
   # Show albums list.
   def show_albums_list(albums)
-    puts "\nAlbums list (page:#{@page_number}):"
+    puts "\nAlbums list - page#{@page_number} :"
     albums.each_index {|i|
-      puts " #{i+1}. #{albums[i].name}  [#{albums[i].pictures} Pictures]"
+      puts " #{i+1}. #{albums[i].name} (#{albums[i].pictures}p)"
     }
     puts
   end
@@ -298,7 +298,7 @@ class WretchDLAppMain
     puts "   Keyin 'h' : Show help."
     puts "   Keyin 'p' : Go to Page."
     puts "   Keyin 'q' : Quit App."
-    puts "   Keyin albums index number(1~20) : Download album photo."
+    puts "   Keyin albums index number(1~20) : Download album photos."
     puts
   end
 end
