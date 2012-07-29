@@ -124,6 +124,10 @@ class WretchAlbumsInfo
       if line =~ /<a href="\.\/album\.php\?id=#{@wretch_id}&book=(\d+)">(.+)<\/a>/
         albums << WretchAlbum.new(@wretch_id, Regexp.last_match[1], Regexp.last_match[2])
       end
+      
+      if line =~ /(\d+)pictures\s*?<\/font>/
+        albums[-1].pictures = Regexp.last_match[1]
+      end
     end
     albums
   end
@@ -282,7 +286,7 @@ class WretchDLAppMain
   def show_albums_list(albums)
     puts "\nAlbums list (page:#{@page_number}):"
     albums.each_index {|i|
-      puts " #{i+1}. #{albums[i].name}"
+      puts " #{i+1}. #{albums[i].name}  [#{albums[i].pictures} Pictures]"
     }
     puts
   end
