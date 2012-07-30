@@ -51,14 +51,14 @@ class WretchPhotoURL
     end
     file_url
   end
-  
 end
+
 
 #
 # WretchAlbum Class
 #
 class WretchAlbum
-  attr_accessor :id, :number, :name, :pictures
+  attr_accessor :id, :number, :name, :pictures, :cover_url
   
   def initialize(id, number, name)
     @id, @number, @name = id, number, name
@@ -101,6 +101,7 @@ class WretchAlbum
   end
 end
 
+
 #
 # WretchAlbumsInfo Class
 #
@@ -129,9 +130,21 @@ class WretchAlbumsInfo
         albums[-1].pictures = Regexp.last_match[1]
       end
     end
+    
+    covers = {}
+    page_html.each_line do |line|
+      if line =~ %r!<img src="(http://.+/#{@wretch_id}/(\d+)/thumbs/.+)" border="0" alt="Cover"/>!
+        key = $2.to_sym
+        covers[key] = $1
+      end
+    end
+    
+    albums.each do |a|
+      key = a.number.to_sym
+      a.cover_url = covers[key]
+    end
     albums
   end
-  
 end
 
 
