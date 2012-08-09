@@ -112,7 +112,7 @@ class WretchAlbumsInfo
     @wretch_id = wretch_id
   end
 
-  def list(page_number)
+  def list_of_page(page_number)
     wretch_url = "http://www.wretch.cc/album/#{@wretch_id}"
     if page_number >= 2 
       wretch_url << "&page=#{page_number}"
@@ -134,6 +134,9 @@ class WretchAlbumsInfo
     covers = {}
     page_html.each_line do |line|
       if line =~ %r!<img src="(http://.+/#{@wretch_id}/(\d+)/thumbs/.+)" border="0" alt="Cover"/>!
+        key = $2.to_sym
+        covers[key] = $1
+      elsif line =~ %r!<img src="(http://.+/#{@wretch_id.downcase}/(\d+)/thumbs/.+)" border="0" alt="Cover"/>!
         key = $2.to_sym
         covers[key] = $1
       end
@@ -175,7 +178,7 @@ class WretchDLAppMain
       wretch_id = gets.chomp
       @page_number = 1
       albums_info = WretchAlbumsInfo.new(wretch_id)
-      albums = albums_info.list(@page_number)
+      albums = albums_info.list_of_page(@page_number)
     rescue OpenURI::HTTPError => e
       puts "=> Error: #{e.message}"
       retry
@@ -204,7 +207,7 @@ class WretchDLAppMain
       when input_cmd == 'p' || input_cmd == 'P'
         print "Go to Page: "
         @page_number = gets.chomp.to_i
-        albums = albums_info.list(@page_number)
+        albums = albums_info.list_of_page(@page_number)
         show_albums_list(albums)
         num = 0
         next
@@ -298,8 +301,9 @@ class WretchDLAppMain
   # Show albums list.
   def show_albums_list(albums)
     puts "\nAlbums list - page#{@page_number} :"
-    albums.each_index {|i|
-      puts " #{i+1}. #{albums[i].name} (#{albums[i].pictures}p)"
+    albums.each_with_index {|album, i|
+      puts " #{i+1}. #{album.name} (#{album.pictures}p)"
+      #p album.cover_url
     }
     puts
   end
