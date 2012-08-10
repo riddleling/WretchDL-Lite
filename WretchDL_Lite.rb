@@ -27,6 +27,7 @@
 
 
 require 'open-uri'
+require 'fileutils'
 
 #
 # WretchPhotoURL Class
@@ -251,25 +252,11 @@ class WretchDLAppMain
 
   # make and change dir.
   def make_and_change_dir(id_name, album_name)
-    # make directory: WretchAlbum
-    dl_dir_name = "WretchAlbum"
-    unless File.exist?(dl_dir_name) and File.directory?(dl_dir_name)
-      Dir.mkdir(dl_dir_name, 0755)
-    end
-    Dir.chdir(dl_dir_name)
-
-    # make directory: using account name
-    unless File.exist?(id_name) and File.directory?(id_name)
-      Dir.mkdir(id_name, 0755)
-    end
-    Dir.chdir(id_name)
-
-    # make directory: using album name
-    unless File.exist?(album_name) and File.directory?(album_name)
-      Dir.mkdir(album_name, 0755)
-    end
-    Dir.chdir(album_name)
-     # puts "Save path: " + Dir.pwd + "/"
+    dl_path = "WretchAlbum/#{id_name}/#{album_name}"
+    FileUtils.mkdir_p(dl_path)
+    
+    Dir.chdir(dl_path)
+    #puts "Save path: " + Dir.pwd + "/"
   end
 
   # Download a file.
