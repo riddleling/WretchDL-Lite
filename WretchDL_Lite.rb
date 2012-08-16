@@ -52,6 +52,14 @@ class WretchPhotoURL
     end
     file_url
   end
+  
+  def to_fileurl_with_filename
+    file_url = to_file_url
+    file_url =~ %r!http://.+/(.+\.jpg)\?.+!
+    file_name = $1
+    yield file_url, file_name
+    return file_url, file_name
+  end
 end
 
 
@@ -180,10 +188,7 @@ class WretchDLAppMain
       @page_number = 1
       albums_info = WretchAlbumsInfo.new(wretch_id)
       albums = albums_info.list_of_page(@page_number)
-    rescue OpenURI::HTTPError => e
-      puts "=> Error: #{e.message}"
-      retry
-    rescue URI::InvalidURIError => e
+    rescue OpenURI::HTTPError, URI::InvalidURIError => e
       puts "=> Error: #{e.message}"
       retry
     end
@@ -226,11 +231,10 @@ class WretchDLAppMain
         # start download jpg file.
         @count_files = 0
         albums[album_index].photos_urls.each do |photo_url|
-          file_url = photo_url.to_file_url
-          if file_url.empty? == false
-            download_file(file_url)
-          end
-          sleep 1
+          photo_url.to_fileurl_with_filename {|file_url, file_name|
+            download_file(file_url, file_name) if not file_url.empty?
+            sleep 1
+          }
         end
         
         puts "\n=> Done! Download the #{@count_files} files!"
@@ -253,19 +257,21 @@ class WretchDLAppMain
   # make and change dir.
   def make_and_change_dir(id_name, album_name)
     dl_path = "WretchAlbum/#{id_name}/#{album_name}"
-    FileUtils.mkdir_p(dl_path)
+    
+    unless File.exist?(dl_path) and File.directory?(dl_path)
+        FileUtils.mkdir_p(dl_path)
+        puts "mkdir: #{dl_path}"
+    end
     
     Dir.chdir(dl_path)
-    #puts "Save path: " + Dir.pwd + "/"
+    puts "Save path: " + Dir.pwd + "/"
   end
 
   # Download a file.
-  def download_file(file_url)
-    file_url =~ %r!http://.+/(.+\.jpg)?.+!
-    file_name = $1
+  def download_file(file_url, file_name)
     puts "Downloading #{file_name}:"
-    
     referer_url = "http://www.wretch.cc/album/"
+    
     if system "curl -# --referer #{referer_url} '#{file_url}' -o #{file_name}"
       @count_files += 1
     else
