@@ -57,7 +57,7 @@ class WretchPhotoURL
     file_url = to_file_url
     file_url =~ %r!http://.+/(.+\.jpg)\?.+!
     file_name = $1
-    yield file_url, file_name
+    yield file_url, file_name if block_given?
     return file_url, file_name
   end
 end
@@ -260,7 +260,7 @@ class WretchDLAppMain
     
     unless File.exist?(dl_path) and File.directory?(dl_path)
         FileUtils.mkdir_p(dl_path)
-        puts "mkdir: #{dl_path}"
+         #puts "mkdir: #{dl_path}"
     end
     
     Dir.chdir(dl_path)
