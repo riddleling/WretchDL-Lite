@@ -173,7 +173,7 @@ class WretchDLAppMain
   # app start
   def start
     puts "- WretchDL Lite v#{@version} by Riddle Ling, 2012."
-    while 1 do
+    loop do
       main_code
     end
   end
@@ -181,11 +181,13 @@ class WretchDLAppMain
   private
   # Main Code
   def main_code
+    @page_number = 1
+    num = 0
+    
     # input Wretch account name.
     begin
       print "\nPlease input Wretch account: "
       wretch_id = gets.chomp
-      @page_number = 1
       albums_info = WretchAlbumsInfo.new(wretch_id)
       albums = albums_info.list_of_page(@page_number)
     rescue OpenURI::HTTPError, URI::InvalidURIError => e
@@ -193,10 +195,8 @@ class WretchDLAppMain
       retry
     end
     
-    show_albums_list(albums)
-    num = 0
-    
-    while 1 do
+    loop do
+      show_albums_list(albums)
       # input command.
       print "(#{wretch_id}):p#{@page_number}:#{num}>> "
       input_cmd = gets.chomp
@@ -206,6 +206,8 @@ class WretchDLAppMain
         break
       when input_cmd == 'h' || input_cmd == 'H'
         show_help
+        print "Press Enter-key to continue... "
+        gets.chomp
         next
       when input_cmd == 'q' || input_cmd == 'Q'
         puts "Quit!"
@@ -214,7 +216,6 @@ class WretchDLAppMain
         print "Go to Page: "
         @page_number = gets.chomp.to_i
         albums = albums_info.list_of_page(@page_number)
-        show_albums_list(albums)
         num = 0
         next
       end
@@ -248,9 +249,7 @@ class WretchDLAppMain
       else
         puts "=> ?"
       end
-      
-      show_albums_list(albums)
-    end # While End
+    end
   end # Main Code End
 
 

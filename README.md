@@ -32,14 +32,14 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
      
     (riddleapple):p1:0>>
 
-輸入相簿編號，就可以開始下載相簿。例如想要下載上述列表的``小時候的相片``，就輸入``1``：
+輸入相簿編號，就可以開始下載相簿。例如想要下載上述列表的`小時候的相片`，就輸入`1`：
 
     (riddleapple):p1:0>> 1
 
-下載的相簿會儲存在現行資料夾裡的``WretchAlbum``資料夾裡。
+下載的相簿會儲存在現行資料夾裡的`WretchAlbum`資料夾裡。
 
 
-輸入``h``會顯示 Help 內容：
+輸入`h`會顯示 Help 內容：
 
     (riddleapple):p1:1>> h
     Help:
@@ -49,17 +49,19 @@ Ubuntu 使用者需要先安裝 Ruby 與 curl：
       Keyin 'q' : Quit App.
       Keyin albums index number(1~20) : Download album photos.
 
-輸入``p``可以切換頁面。例如想要顯示第二頁的相簿列表時：
+    Press Enter-key to continue...
+
+輸入`p`可以切換頁面。例如想要顯示第二頁的相簿列表時：
 
     (riddleapple):p1:1>> p
     Go to Page: 2
 
-輸入``a``可以切換 Wretch 帳號：
+輸入`a`可以切換 Wretch 帳號：
 
     (riddleapple):p1:1>> a
     Please input Wretch account: 這裡輸入 Wretch 帳號
 
-輸入``q``會結束程式：
+輸入`q`會結束程式：
 
     (riddleapple):p1:1>> q
     Quit!
